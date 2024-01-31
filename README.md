@@ -3,3 +3,6 @@ Este repositório será usado para guardar scripts de minha autoria relacionados
 
 ## [VoidGrub Stats](voidgrub_stats.js)
 Um script que retorna a winrate dos times, de ligas de sua escolha, quando pegam de 0 a 6 vastilarvas.
+
+## [Soul Stats](soul_stats.js)
+Um script que retorna a winrate das almas de dragão elemental, de ligas de sua escolha.

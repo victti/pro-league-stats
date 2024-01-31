@@ -1,14 +1,6 @@
-String.prototype.format = function () {
-    var args = arguments;
-    return this.replace(/{([0-9]+)}/g, function (match, index) {
-        return typeof args[index] == 'undefined' ? match : args[index];
-    });
-}
+const { GetBayesGames, GetBayersGame } = require("./common");
 
-const bayesSearchAPI = "https://lol.fandom.com/api.php?action=cargoquery&format=json&limit=max&tables=MatchScheduleGame%3DMSG%2C%20MatchSchedule%3DMS&fields=RiotPlatformGameId%2C%20Blue%2C%20Red%2C%20DateTime_UTC&where={0}&join_on=MSG.MatchId%3DMS.MatchId&order_by=MS.DateTime_UTC%20ASC";
-const bayesGameAPI = "https://lol.fandom.com/api.php?action=query&format=json&prop=revisions&titles=V5%20data%3A{0}%7CV5%20data%3A{0}%2FTimeline&rvprop=content&rvslots=main";
- 
-const leagueNames = ["CBLOL"];
+const leagueNames = ["LCK"];
 
 async function EntryPoint()
 {
@@ -157,44 +149,15 @@ async function EntryPoint()
 
     //#endregion
 
-    console.log("Dados relativos as seguintes ligas: {0} | Total de jogos: {1}".format(leagueNames, statistics.length));
-    console.log("pelo menos 5 vastilarvas: ocorrências {0} | winrate {1}%".format(totalGamesLeastFiveGrub, leastFiveGrubWinPercent));
-    console.log("6 vastilarvas: ocorrências {0} | winrate {1}%".format(totalGamesSixGrub, sixGrubWinPercent));
-    console.log("5 vastilarvas: ocorrências {0} | winrate {1}%".format(totalGamesFiveGrub, fiveGrubWinPercent));
-    console.log("4 vastilarvas: ocorrências {0} | winrate {1}%".format(totalGamesFourGrub, fourGrubWinPercent));
-    console.log("3 vastilarvas: ocorrências {0} | winrate {1}%".format(totalGamesThreeGrub, threeGrubWinPercent));
-    console.log("2 vastilarvas: ocorrências {0} | winrate {1}%".format(totalGamesTwoGrub, twoGrubWinPercent));
-    console.log("1 vastilarvas: ocorrências {0} | winrate {1}%".format(totalGamesOneGrub, oneGrubWinPercent));
-    console.log("0 vastilarvas: ocorrências {0} | winrate {1}%".format(totalGamesZeroGrub, zeroGrubWinPercent));
-}
-
-async function GetBayesGames(leagueName, year)
-{
-    let leaguepediaLeagueName = leagueName.toUpperCase();
-    let query = "{0}/{1}%";
-
-    switch(leagueName)
-    {
-        case "LPL":
-        case "WORLDS":
-            query = "{0} {1}%";
-            break;
-        case "MSI":
-            leaguepediaLeagueName = "Mid-Season Invitational";
-            query = "{1} {0}%";
-            break;
-    }
-
-    query = query.format(leaguepediaLeagueName, year);
-
-    let where = "MSG.OverviewPage LIKE '{0}'".format(query);
-
-    return await fetch(bayesSearchAPI.format(where), {}).then(resp => resp.json());
-}
-
-async function GetBayersGame(RiotGameID)
-{
-    return await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json());
+    console.log(`Dados relativos as seguintes ligas: ${leagueNames} | Total de jogos: ${statistics.length}`);
+    console.log(`pelo menos 5 vastilarvas: ocorrências ${totalGamesLeastFiveGrub} | winrate ${leastFiveGrubWinPercent}%`);
+    console.log(`6 vastilarvas: ocorrências ${totalGamesSixGrub} | winrate ${sixGrubWinPercent}%`);
+    console.log(`5 vastilarvas: ocorrências ${totalGamesFiveGrub} | winrate ${fiveGrubWinPercent}%`);
+    console.log(`4 vastilarvas: ocorrências ${totalGamesFourGrub} | winrate ${fourGrubWinPercent}%`);
+    console.log(`3 vastilarvas: ocorrências ${totalGamesThreeGrub} | winrate ${threeGrubWinPercent}%`);
+    console.log(`2 vastilarvas: ocorrências ${totalGamesTwoGrub} | winrate ${twoGrubWinPercent}%`);
+    console.log(`1 vastilarvas: ocorrências ${totalGamesOneGrub} | winrate ${oneGrubWinPercent}%`);
+    console.log(`0 vastilarvas: ocorrências ${totalGamesZeroGrub} | winrate ${zeroGrubWinPercent}%`);
 }
 
 EntryPoint();
