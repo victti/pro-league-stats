@@ -9,3 +9,6 @@ Script que retorna a winrate dos times, de ligas de sua escolha, quando pegam de
 
 ## [Soul Stats](soul_stats.js)
 Script que retorna a winrate das almas de dragão elemental, de ligas de sua escolha.
+
+#
+Se você encontrar algum problema ou tiver alguma sugestão de otimização, sinta-se livre para fazer um PR!
