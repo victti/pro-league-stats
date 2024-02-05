@@ -18,23 +18,7 @@ async function EntryPoint()
             if(entry.title.RiotPlatformGameId == null)
                 continue;
 
-            let bayesGame = await GetBayersGame(entry.title.RiotPlatformGameId);
-
-            let matchDetails = null;
-            let timelineDetails = null;
-
-            for(let pageNum in bayesGame.query.pages)
-            {
-                let page = bayesGame.query.pages[pageNum];
-
-                if(page.title.includes("Timeline"))
-                {
-                    timelineDetails =  page.revisions != undefined ? JSON.parse(page.revisions[0].slots.main["*"]) : null;
-                    continue;
-                }
-
-                matchDetails = page.revisions != undefined ? JSON.parse(page.revisions[0].slots.main["*"]) : null;
-            }
+            let { matchDetails, timelineDetails } = await GetBayersGame(entry.title.RiotPlatformGameId);
 
             if(matchDetails == null || timelineDetails == null)
                 continue;

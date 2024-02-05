@@ -15,7 +15,7 @@ async function GetBayesGames(leagueName, year)
 
     switch(leagueName)
     {
-        case "LPL":
+        case "LPL": // TBD: pegar o campo de ID do jogo da LPL (QQ)
         case "WORLDS":
             query = "{0} {1}%";
             break;
@@ -34,7 +34,26 @@ async function GetBayesGames(leagueName, year)
 
 async function GetBayersGame(RiotGameID)
 {
-    return await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json());
+    let matchDetails = null;
+    let timelineDetails = null;
+
+    // TBD: usar a API da LPL pra pegar jogos da LPL | https://open.tjstats.com/match-auth-app/open/v1/compound/matchDetail?matchId={0}
+    let bayesGame = await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json());
+
+    for(let pageNum in bayesGame.query.pages)
+    {
+        let page = bayesGame.query.pages[pageNum];
+
+        if(page.title.includes("Timeline"))
+        {
+            timelineDetails =  page.revisions != undefined ? JSON.parse(page.revisions[0].slots.main["*"]) : null;
+            continue;
+        }
+
+        matchDetails = page.revisions != undefined ? JSON.parse(page.revisions[0].slots.main["*"]) : null;
+    }
+
+    return { matchDetails, timelineDetails};
 }
 
 function fmtMSS(s){return(s-(s%=60))/60+(9<s?':':':0')+s}
