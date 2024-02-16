@@ -1,6 +1,6 @@
 const { GetBayesGames, GetBayersGame } = require("./common");
 
-const leagueNames = ["LCK"];
+const leagueNames = ["CBLOL"];
 
 async function EntryPoint()
 {

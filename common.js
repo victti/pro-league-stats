@@ -38,7 +38,7 @@ async function GetBayersGame(RiotGameID)
     let timelineDetails = null;
 
     // TBD: usar a API da LPL pra pegar jogos da LPL | https://open.tjstats.com/match-auth-app/open/v1/compound/matchDetail?matchId={0}
-    let bayesGame = await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json());
+    let bayesGame = await GetCacheOrFetchGame(RiotGameID);
 
     for(let pageNum in bayesGame.query.pages)
     {
@@ -54,6 +54,23 @@ async function GetBayersGame(RiotGameID)
     }
 
     return { matchDetails, timelineDetails};
+}
+
+async function GetCacheOrFetchGame(RiotGameID)
+{
+    const fs = require('fs').promises;
+
+    try {
+        let fileData = await fs.readFile(`.cache/${RiotGameID}.json`);
+
+        return JSON.parse(fileData);
+    } catch {
+        let json = await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json());
+
+        await fs.writeFile(`.cache/${RiotGameID}.json`, JSON.stringify(json), 'utf8');
+
+        return json;
+    }
 }
 
 function fmtMSS(s){return(s-(s%=60))/60+(9<s?':':':0')+s}

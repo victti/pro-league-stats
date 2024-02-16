@@ -104,7 +104,7 @@ async function EntryPoint()
     for(let team in statistics)
     {
         statistics[team].winrate = ((statistics[team].winrate / statistics[team].games) * 100).toFixed(1) + "%";
-        statistics[team].gameTime = "Média de tempo: " + fmtMSS(statistics[team].gameTime / statistics[team].games);
+        statistics[team].gameTime = "Média de tempo: " + fmtMSS((statistics[team].gameTime / statistics[team].games).toFixed(0));
 
         statistics[team]["fb%"] = ((statistics[team]["fb%"] / statistics[team].games) * 100).toFixed(1) + "%";
         statistics[team]["fvg%"] = ((statistics[team]["fvg%"] / statistics[team].games) * 100).toFixed(1) + "%";
