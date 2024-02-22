@@ -63,7 +63,8 @@ async function GetQqGame(matchId, gameNum)
 
     let qqGame = await GetCacheOrFetchGame(matchId);
 
-    // TBD: refazer o json da riot usando esses dados LPL QQ
+    if(!qqGame.success)
+        return { matchDetails: null };
 
     let currentQqGame = qqGame.data.matchInfos[gameNum];
 
@@ -92,6 +93,7 @@ async function GetQqGame(matchId, gameNum)
     for(let teamIndex of teamsIndex)
     {
         let isBlueTeam = teamIndex == blueTeamIndex;
+        let didFirstBlood = false;
 
         for(let player of currentQqGame.teamInfos[teamIndex].playerInfos)
         {
@@ -107,10 +109,15 @@ async function GetQqGame(matchId, gameNum)
 
             playerData.riotIdGameName = teamsName[teamIndex] + " " + player.playerName.replace(teamsName[teamIndex], "");
 
+            if(player.otherDetail.firstBlood)
+            {
+                didFirstBlood = true;
+            }
+
             matchDetails.participants.push(playerData);
         }
 
-        let teamData = { bans: [], objectives: { baron: {first: false, kills: currentQqGame.teamInfos[teamIndex].baronAmount}, champion: {first: false, kills: currentQqGame.teamInfos[teamIndex].kills}, dragon: {first: currentQqGame.teamInfos[teamIndex].isFirstDragon, kills: currentQqGame.teamInfos[teamIndex].dragonAmount}, inhibitor: {first: currentQqGame.teamInfos[teamIndex].isFirstInhibitor, kills: currentQqGame.teamInfos[teamIndex].inhibitKills}, riftHerald: {first: currentQqGame.teamInfos[teamIndex].isFirstRiftHerald, kills: currentQqGame.teamInfos[teamIndex].isFirstRiftHerald ? 1 : 0}, tower: {first: currentQqGame.teamInfos[teamIndex].isFirstTurret, kills: currentQqGame.teamInfos[teamIndex].turretAmount}, horde: {first: false, kills: 0} }, teamId: isBlueTeam ? 100 : 200, win: teamsWin[teamIndex] };
+        let teamData = { bans: [], objectives: { baron: {first: false, kills: currentQqGame.teamInfos[teamIndex].baronAmount}, champion: {first: didFirstBlood, kills: currentQqGame.teamInfos[teamIndex].kills}, dragon: {first: currentQqGame.teamInfos[teamIndex].isFirstDragon, kills: currentQqGame.teamInfos[teamIndex].dragonAmount}, inhibitor: {first: currentQqGame.teamInfos[teamIndex].isFirstInhibitor, kills: currentQqGame.teamInfos[teamIndex].inhibitKills}, riftHerald: {first: currentQqGame.teamInfos[teamIndex].isFirstRiftHerald, kills: currentQqGame.teamInfos[teamIndex].isFirstRiftHerald ? 1 : 0}, tower: {first: currentQqGame.teamInfos[teamIndex].isFirstTurret, kills: currentQqGame.teamInfos[teamIndex].turretAmount}, horde: {first: false, kills: 0} }, teamId: isBlueTeam ? 100 : 200, win: teamsWin[teamIndex] };
         
         for(let banIndex in currentQqGame.teamInfos[teamIndex].banHeroList)
         {
@@ -177,13 +184,13 @@ async function GetCacheOrFetchGame(RiotGameID)
     } catch {
         let isLPL = isNaN(RiotGameID);
         let cache = true;
-        
+
         let json = isLPL ? await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json()) : await fetch(lplGameAPI.format(RiotGameID), {headers:{"Authorization": "7935be4c41d8760a28c05581a7b1f570"}}).then(resp => resp.json());
 
-        // Só salvar se a série tiver acabado
+        // Só salvar se a série da LPL tiver acabado
         if(isLPL)
         {
-            cache = json.data.matchStatus == 2;
+            cache = json.success && json.data.matchStatus == 2;
         }
 
         if(cache)
