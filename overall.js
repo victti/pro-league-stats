@@ -1,6 +1,6 @@
-const { GetBayesGames, GetBayersGame, fmtMSS, nFormatter } = require("./common");
+const { GetBayesGames, GetBayersGame, fmtMSS, nFormatter, GetQqGame } = require("./common");
 
-const leagueNames = ["CBLOL"];
+const leagueNames = ["LPL"];
 
 async function EntryPoint()
 {
@@ -15,10 +15,10 @@ async function EntryPoint()
 
         for(let entry of bayesGames.cargoquery)
         {
-            if(entry.title.RiotPlatformGameId == null)
+            if(entry.title.RiotPlatformGameId == null && entry.title.QQ == null)
                 continue;
 
-            let { matchDetails, timelineDetails } = await GetBayersGame(entry.title.RiotPlatformGameId);
+            let { matchDetails, timelineDetails } = entry.title.RiotPlatformGameId != null ? await GetBayersGame(entry.title.RiotPlatformGameId) : await GetQqGame(entry.title.QQ, Number(entry.title.GameNum) - 1);
 
             if(matchDetails == null || timelineDetails == null)
                 continue;
@@ -28,7 +28,7 @@ async function EntryPoint()
 
             for(let participant of matchDetails.participants)
             {
-                let teamCode = participant.riotIdGameName.split(" ")[0];
+                let teamCode = participant.riotIdGameName != undefined ? participant.riotIdGameName.split(" ")[0] : participant.summonerName.split(" ")[0];
 
                 let teamId = participant.teamId;
 
@@ -104,7 +104,7 @@ async function EntryPoint()
     for(let team in statistics)
     {
         statistics[team].winrate = ((statistics[team].winrate / statistics[team].games) * 100).toFixed(1) + "%";
-        statistics[team].gameTime = "Média de tempo: " + fmtMSS((statistics[team].gameTime / statistics[team].games).toFixed(0));
+        statistics[team].gameTime = fmtMSS((statistics[team].gameTime / statistics[team].games).toFixed(0));
 
         statistics[team]["fb%"] = ((statistics[team]["fb%"] / statistics[team].games) * 100).toFixed(1) + "%";
         statistics[team]["fvg%"] = ((statistics[team]["fvg%"] / statistics[team].games) * 100).toFixed(1) + "%";

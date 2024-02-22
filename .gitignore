@@ -1,1 +1,4 @@
 .cache
+
+# Coisas mais específicas do IDL
+*_idl.js
