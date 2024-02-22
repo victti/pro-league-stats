@@ -150,12 +150,22 @@ async function GetQqGame(matchId, gameNum)
     return { matchDetails, timelineDetails: {frameInterval: 60000, frames: []} };
 }
 
-async function GetBayersGame(RiotGameID)
+async function GetBayersGame(entry)
 {
     let matchDetails = null;
     let timelineDetails = null;
 
-    let bayesGame = await GetCacheOrFetchGame(RiotGameID);
+    if(entry.RiotPlatformGameId == null)
+    {
+        if(entry.QQ == null)
+        {
+            return { matchDetails, timelineDetails};
+        }
+
+        return await GetQqGame(entry.QQ, Number(entry.GameNum) - 1);
+    }
+
+    let bayesGame = await GetCacheOrFetchGame(entry.RiotPlatformGameId);
 
     for(let pageNum in bayesGame.query.pages)
     {
@@ -182,7 +192,7 @@ async function GetCacheOrFetchGame(RiotGameID)
 
         return JSON.parse(fileData);
     } catch {
-        let isLPL = isNaN(RiotGameID);
+        let isLPL = !isNaN(RiotGameID);
         let cache = true;
 
         let json = isLPL ? await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json()) : await fetch(lplGameAPI.format(RiotGameID), {headers:{"Authorization": "7935be4c41d8760a28c05581a7b1f570"}}).then(resp => resp.json());
@@ -190,7 +200,7 @@ async function GetCacheOrFetchGame(RiotGameID)
         // Só salvar se a série da LPL tiver acabado
         if(isLPL)
         {
-            cache = json.success && json.data.matchStatus == 2;
+            cache = json.success == true && json.data.matchStatus == 2;
         }
 
         if(cache)

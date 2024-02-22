@@ -15,10 +15,7 @@ async function EntryPoint()
 
         for(let entry of bayesGames.cargoquery)
         {
-            if(entry.title.RiotPlatformGameId == null)
-                continue;
-
-            let { matchDetails, timelineDetails } = await GetBayersGame(entry.title.RiotPlatformGameId);
+            let { matchDetails, timelineDetails } = await GetBayersGame(entry.title);
 
             if(matchDetails == null || timelineDetails == null)
                 continue;
