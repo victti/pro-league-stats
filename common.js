@@ -175,10 +175,22 @@ async function GetCacheOrFetchGame(RiotGameID)
 
         return JSON.parse(fileData);
     } catch {
-        let json = isNaN(RiotGameID) ? await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json()) : await fetch(lplGameAPI.format(RiotGameID), {headers:{"Authorization": "7935be4c41d8760a28c05581a7b1f570"}}).then(resp => resp.json());
+        let isLPL = isNaN(RiotGameID);
+        let cache = true;
+        
+        let json = isLPL ? await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json()) : await fetch(lplGameAPI.format(RiotGameID), {headers:{"Authorization": "7935be4c41d8760a28c05581a7b1f570"}}).then(resp => resp.json());
 
-        await fs.writeFile(`.cache/${RiotGameID}.json`, JSON.stringify(json), 'utf8');
+        // Só salvar se a série tiver acabado
+        if(isLPL)
+        {
+            cache = json.data.matchStatus == 2;
+        }
 
+        if(cache)
+        {
+            await fs.writeFile(`.cache/${RiotGameID}.json`, JSON.stringify(json), 'utf8');
+        }
+        
         return json;
     }
 }
