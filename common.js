@@ -195,7 +195,7 @@ async function GetCacheOrFetchGame(RiotGameID)
         let isLPL = !isNaN(RiotGameID);
         let cache = true;
 
-        let json = isLPL ? await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json()) : await fetch(lplGameAPI.format(RiotGameID), {headers:{"Authorization": "7935be4c41d8760a28c05581a7b1f570"}}).then(resp => resp.json());
+        let json = !isLPL ? await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json()) : await fetch(lplGameAPI.format(RiotGameID), {headers:{"Authorization": "7935be4c41d8760a28c05581a7b1f570"}}).then(resp => resp.json());
 
         // Só salvar se a série da LPL tiver acabado
         if(isLPL)
