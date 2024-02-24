@@ -21,6 +21,7 @@ async function GetBayesGames(leagueName, year, excludeList)
             query = `${leaguepediaLeagueName} ${year}%`;
             break;
         case "MSI":
+        case "Mid-Season Invitational":
             query = `${year} Mid-Season Invitational%`;
             break;
         case "NACL":
@@ -40,7 +41,7 @@ async function GetBayesGames(leagueName, year, excludeList)
     {
         if(Array.isArray(excludeList))
         {
-            for(let exclude in excludeList)
+            for(let exclude of excludeList)
             {
                 where += ` AND MSG.OverviewPage NOT LIKE '%${exclude}%'`;
             }
@@ -88,7 +89,7 @@ async function GetQqGame(matchId, gameNum)
     let redTeamIndex = blueTeamIndex == 0 ? 1 : 0;
 
     let teamsIndex = [blueTeamIndex, redTeamIndex];
-    let teamsWin = [ currentQqGame.matchWin == currentQqGame.blueTeam, currentQqGame.matchWin != currentQqGame.blueTeam ];
+    let teamsWin = [currentQqGame.matchWin == currentQqGame.blueTeam, currentQqGame.matchWin != currentQqGame.blueTeam];
 
     for(let teamIndex of teamsIndex)
     {
@@ -150,22 +151,27 @@ async function GetQqGame(matchId, gameNum)
     return { matchDetails, timelineDetails: {frameInterval: 60000, frames: []} };
 }
 
-async function GetBayersGame(entry)
+async function GetGameData(entry)
 {
-    let matchDetails = null;
-    let timelineDetails = null;
-
     if(entry.RiotPlatformGameId == null)
     {
         if(entry.QQ == null)
         {
-            return { matchDetails, timelineDetails};
+            return { matchDetails: null, timelineDetails: null };
         }
 
         return await GetQqGame(entry.QQ, Number(entry.GameNum) - 1);
     }
 
-    let bayesGame = await GetCacheOrFetchGame(entry.RiotPlatformGameId);
+    return await GetBayersGame(entry.RiotPlatformGameId);
+}
+
+async function GetBayersGame(RiotPlatformGameId)
+{
+    let matchDetails = null;
+    let timelineDetails = null;
+
+    let bayesGame = await GetCacheOrFetchGame(RiotPlatformGameId);
 
     for(let pageNum in bayesGame.query.pages)
     {
@@ -193,15 +199,11 @@ async function GetCacheOrFetchGame(RiotGameID)
         return JSON.parse(fileData);
     } catch {
         let isLPL = !isNaN(RiotGameID);
-        let cache = true;
 
         let json = !isLPL ? await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json()) : await fetch(lplGameAPI.format(RiotGameID), {headers:{"Authorization": "7935be4c41d8760a28c05581a7b1f570"}}).then(resp => resp.json());
 
-        // Só salvar se a série da LPL tiver acabado
-        if(isLPL)
-        {
-            cache = json.success == true && json.data.matchStatus == 2;
-        }
+        // Só salvar se a série da LPL tiver acabado / Só salvar o jogo do leaguepedia se tiver os dois json
+        let cache = isLPL ? json.success == true && json.data.matchStatus == 2 : Object.keys(json.query.pages).length == 2;
 
         if(cache)
         {
@@ -251,4 +253,4 @@ function nFormatter(num, digits) {
     return (num / si[i].value).toFixed(digits).replace(rx, "$1") + si[i].symbol;
 }
 
-module.exports = { GetBayesGames, GetBayersGame, GetQqGame, fmtMSS, nFormatter }
+module.exports = { GetBayesGames, GetGameData, GetBayersGame, GetQqGame, fmtMSS, nFormatter }

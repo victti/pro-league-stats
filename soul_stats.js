@@ -1,4 +1,4 @@
-const { GetBayesGames, GetBayersGame } = require("./common");
+const { GetBayesGames, GetGameData } = require("./common");
 
 const leagueNames = ["CBLOL"];
 
@@ -15,7 +15,7 @@ async function EntryPoint()
 
         for(let entry of bayesGames.cargoquery)
         {
-            let { matchDetails, timelineDetails } = await GetBayersGame(entry.title);
+            let { matchDetails, timelineDetails } = await GetGameData(entry.title);
 
             if(matchDetails == null || timelineDetails == null)
                 continue;

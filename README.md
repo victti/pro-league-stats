@@ -1,6 +1,8 @@
 # Pro League Stats
 Este repositório será usado para guardar scripts de minha autoria relacionados a estatísticas do cenário competitivo de League of Legends utilizando a API pública do [Leaguepedia](https://lol.fandom.com/wiki/Help:ACS_archive_%26_post-game_JSONs).
 
+**Dados da LPL são limitados, por exemplo não é possível saber quais dragões ou vastilarvas foram feitas.**
+
 ## [Overall](overall.js)
 Script que retorna estatísticas gerais dos times de ligas de sua escolha. Estatísticas incluem: jogos, winrate, tempo médio de jogo, % de first blood, % de primeiro arauto, % de primeira torre, % de primeiro dragão, % de primeiro baron, média de ouro, média de kills e mortes, média de torres, etc.
 
