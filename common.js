@@ -199,11 +199,19 @@ async function GetCacheOrFetchGame(RiotGameID)
         return JSON.parse(fileData);
     } catch {
         let isLPL = !isNaN(RiotGameID);
+        let cache = false;
 
         let json = !isLPL ? await fetch(bayesGameAPI.format(RiotGameID), {}).then(resp => resp.json()) : await fetch(lplGameAPI.format(RiotGameID), {headers:{"Authorization": "7935be4c41d8760a28c05581a7b1f570"}}).then(resp => resp.json());
 
         // Só salvar se a série da LPL tiver acabado / Só salvar o jogo do leaguepedia se tiver os dois json
-        let cache = isLPL ? json.success == true && json.data.matchStatus == 2 : Object.keys(json.query.pages).length == 2;
+        if(isLPL)
+        {
+            cache = json.success == true && json.data.matchStatus == 2;
+        } else {
+            let pageNums = Object.keys(json.query.pages);
+
+            cache = pageNums.length == 2 && Number(pageNums[0]) >= 0 && Number(pageNums[1]) >= 0;
+        }
 
         if(cache)
         {
