@@ -52,7 +52,7 @@ async function EntryPoint()
                         if(team.teamId == teamId)
                         {
                             statistics[teamCode]["fb%"] += team.objectives.champion.first ? 1 : 0;
-                            statistics[teamCode]["fvg%"] += team.objectives.horde.first ? 1 : 0;
+                            statistics[teamCode]["fvg%"] += team.objectives.horde != undefined ? team.objectives.horde.first ? 1 : 0 : 0;
                             statistics[teamCode]["frh%"] += team.objectives.riftHerald.first ? 1 : 0;
                             statistics[teamCode]["ft%"] += team.objectives.tower.first ? 1 : 0;
                             statistics[teamCode]["fd%"] += team.objectives.dragon.first ? 1 : 0;
