@@ -1,6 +1,6 @@
 const { GetBayesGames, GetGameData, fmtMSS, nFormatter } = require("./common");
 
-const leagueNames = ["LPL"];
+const leagueNames = [];
 
 async function EntryPoint()
 {
@@ -31,7 +31,7 @@ async function EntryPoint()
 
                 if(statistics[teamCode] == undefined)
                 {
-                    statistics[teamCode] = { games: 0, winrate: 0, gameTime: 0, "fb%": 0, "fvg%": 0, "frh%": 0, "ft%": 0, "fd%": 0, "fnash%": 0, gold: 0, kills: 0, deaths: 0, towers: 0, "c.gold": 0, "c.kills": 0, "c.towers": 0, "c.dragons": 0, "c.nashors": 0, "%towers > 11.5": 0, "%towers > 12.5": 0, "%dragons > 4.5": 0, "%dragons > 5.5": 0, "%nashors > 1.5" : 0, "%inhib > 1.5": 0 }
+                    statistics[teamCode] = { games: 0, winrate: 0, gameTime: 0, "fb%": 0, "fvg%": 0, "frh%": 0, "ft%": 0, "fd%": 0, "fnash%": 0, gold: 0, kills: 0, deaths: 0, towers: 0, "c.gold": 0, "c.kills": 0, "c.towers": 0, "c.grubs": 0, "c.dragons": 0, "c.nashors": 0, "%towers > 11.5": 0, "%towers > 12.5": 0, "%dragons > 4.5": 0, "%dragons > 5.5": 0, "%nashors > 1.5" : 0, "%inhib > 1.5": 0 }
                 }
             
                 // Apenas primeira vez
@@ -42,6 +42,7 @@ async function EntryPoint()
                     statistics[teamCode].gameTime += matchDetails.gameDuration;
     
                     let totalTowers = 0;
+                    let totalGrubs = 0;
                     let totalDragons = 0;
                     let totalNashors = 0;
                     let totalInhib = 0;
@@ -63,12 +64,14 @@ async function EntryPoint()
 
                         statistics[teamCode]["c.kills"] += team.objectives.champion.kills;
                         totalTowers += team.objectives.tower.kills;
+                        totalGrubs += team.objectives.horde != undefined ? team.objectives.horde.kills : 0;
                         totalDragons += team.objectives.dragon.kills;
                         totalNashors += team.objectives.baron.kills;
                         totalInhib += team.objectives.inhibitor.kills;
                     }
 
                     statistics[teamCode]["c.towers"] += totalTowers;
+                    statistics[teamCode]["c.grubs"] += totalGrubs;
                     statistics[teamCode]["c.dragons"] += totalDragons;
                     statistics[teamCode]["c.nashors"] += totalNashors;
 
@@ -118,6 +121,7 @@ async function EntryPoint()
         statistics[team]["c.gold"] = nFormatter(statistics[team]["c.gold"] / statistics[team].games, 2);
         statistics[team]["c.kills"] = parseFloat((statistics[team]["c.kills"] / statistics[team].games).toFixed(2));
         statistics[team]["c.towers"] = parseFloat((statistics[team]["c.towers"] / statistics[team].games).toFixed(2));
+        statistics[team]["c.grubs"] = parseFloat((statistics[team]["c.grubs"] / statistics[team].games).toFixed(2));
         statistics[team]["c.dragons"] = parseFloat((statistics[team]["c.dragons"] / statistics[team].games).toFixed(2));
         statistics[team]["c.nashors"] = parseFloat((statistics[team]["c.nashors"] / statistics[team].games).toFixed(2));
 

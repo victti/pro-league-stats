@@ -1,6 +1,6 @@
 const { GetBayesGames, GetGameData } = require("./common");
 
-const leagueNames = ["CBLOL"];
+const leagueNames = [];
 
 async function EntryPoint()
 {
@@ -28,6 +28,13 @@ async function EntryPoint()
             {
                 for(let event of frame.events)
                 {
+                    // Específico pro arquivo da LPL que eu fiz
+                    if(event.type == "ELITE_MONSTER_KILL_LPL")
+                    {
+                        statistics.push({winnerTeam, killerTeamId: event.killerTeamId, monsterSubType: event.monsterSubType});
+                        break;
+                    }
+
                     if(event.type != "ELITE_MONSTER_KILL" || event.monsterType != "DRAGON")
                         continue;
 

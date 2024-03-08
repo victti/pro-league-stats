@@ -1,6 +1,6 @@
 const { GetBayesGames, GetGameData } = require("./common");
 
-const leagueNames = ["CBLOL"];
+const leagueNames = [];
 
 async function EntryPoint()
 {
@@ -23,6 +23,9 @@ async function EntryPoint()
             let winnerTeam = matchDetails.teams[0].win ? matchDetails.teams[0].teamId : matchDetails.teams[1].teamId
             let winnerGrubs = 0;
             let voidGrubs = [];
+
+            if(matchDetails.teams[0].objectives.horde == undefined)
+                continue;
 
             for(let team of matchDetails.teams)
             {

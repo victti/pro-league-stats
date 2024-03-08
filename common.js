@@ -61,6 +61,7 @@ async function GetBayesGames(leagueName, year, excludeList)
 async function GetQqGame(matchId, gameNum)
 {
     let matchDetails = { gameCreation: 0, gameDuration: 0, gameEndTimestamp: 0, gameMode: "CLASSIC", gameName: "", gameType: "CUSTOM_GAME", mapId: 11, participants: [], teams: [] };
+    let timelineDetails = {frameInterval: 60000, frames: []};
 
     let qqGame = await GetCacheOrFetchGame(matchId);
 
@@ -96,6 +97,14 @@ async function GetQqGame(matchId, gameNum)
         let isBlueTeam = teamIndex == blueTeamIndex;
         let didFirstBlood = false;
 
+        if(currentQqGame.teamInfos[teamIndex].dragonSpirit == true)
+        {
+            // Pra não embolar esse drake único com os normais da API oficial, esse se chama ELITE_MONSTER_KILL_LPL pra diferenciar
+            let drakeFrame = { assistingParticipantIds: [], bounty: 0, killerId: 0, killerTeamId: isBlueTeam ? 100 : 200, monsterSubType: `${currentQqGame.teamInfos[teamIndex].dragonSpiritType.toUpperCase()}_DRAGON`, monsterType: "DRAGON", position: {x: 9866, y: 4414}, timestamp: 0, type: "ELITE_MONSTER_KILL_LPL" };
+        
+            timelineDetails.frames.push({ events:[drakeFrame] });
+        }
+
         for(let player of currentQqGame.teamInfos[teamIndex].playerInfos)
         {
             // TBD: runas
@@ -118,7 +127,7 @@ async function GetQqGame(matchId, gameNum)
             matchDetails.participants.push(playerData);
         }
 
-        let teamData = { bans: [], objectives: { baron: {first: false, kills: currentQqGame.teamInfos[teamIndex].baronAmount}, champion: {first: didFirstBlood, kills: currentQqGame.teamInfos[teamIndex].kills}, dragon: {first: currentQqGame.teamInfos[teamIndex].isFirstDragon, kills: currentQqGame.teamInfos[teamIndex].dragonAmount}, inhibitor: {first: currentQqGame.teamInfos[teamIndex].isFirstInhibitor, kills: currentQqGame.teamInfos[teamIndex].inhibitKills}, riftHerald: {first: currentQqGame.teamInfos[teamIndex].isFirstRiftHerald, kills: currentQqGame.teamInfos[teamIndex].isFirstRiftHerald ? 1 : 0}, tower: {first: currentQqGame.teamInfos[teamIndex].isFirstTurret, kills: currentQqGame.teamInfos[teamIndex].turretAmount}, horde: {first: false, kills: currentQqGame.teamInfos[teamIndex].voidGrubAmount != undefined ? currentQqGame.teamInfos[teamIndex].voidGrubAmount : 0} }, teamId: isBlueTeam ? 100 : 200, win: teamsWin[teamIndex] };
+        let teamData = { bans: [], objectives: { baron: {first: false, kills: currentQqGame.teamInfos[teamIndex].baronAmount}, champion: {first: didFirstBlood, kills: currentQqGame.teamInfos[teamIndex].kills}, dragon: {first: currentQqGame.teamInfos[teamIndex].isFirstDragon, kills: currentQqGame.teamInfos[teamIndex].dragonAmount + currentQqGame.teamInfos[teamIndex].elderDragonAmount }, inhibitor: {first: currentQqGame.teamInfos[teamIndex].isFirstInhibitor, kills: currentQqGame.teamInfos[teamIndex].inhibitKills}, riftHerald: {first: currentQqGame.teamInfos[teamIndex].isFirstRiftHerald, kills: currentQqGame.teamInfos[teamIndex].isFirstRiftHerald ? 1 : 0}, tower: {first: currentQqGame.teamInfos[teamIndex].isFirstTurret, kills: currentQqGame.teamInfos[teamIndex].turretAmount}, horde: {first: false, kills: currentQqGame.teamInfos[teamIndex].voidGrubAmount != undefined ? currentQqGame.teamInfos[teamIndex].voidGrubAmount : 0} }, teamId: isBlueTeam ? 100 : 200, win: teamsWin[teamIndex] };
         
         for(let banIndex in currentQqGame.teamInfos[teamIndex].banHeroList)
         {
@@ -148,7 +157,7 @@ async function GetQqGame(matchId, gameNum)
         matchDetails.teams.push(teamData);
     }
 
-    return { matchDetails, timelineDetails: {frameInterval: 60000, frames: []} };
+    return { matchDetails, timelineDetails };
 }
 
 async function GetGameData(entry)
