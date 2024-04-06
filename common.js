@@ -9,11 +9,11 @@ const bayesSearchAPI = "https://lol.fandom.com/api.php?action=cargoquery&format=
 const bayesGameAPI = "https://lol.fandom.com/api.php?action=query&format=json&prop=revisions&titles=V5%20data%3A{0}%7CV5%20data%3A{0}%2FTimeline&rvprop=content&rvslots=main";
 const lplGameAPI = "https://open.tjstats.com/match-auth-app/open/v1/compound/matchDetail?matchId={0}";
 
-async function GetBayesGames(leagueName, year, excludeList)
+async function GetBayesGamesDEPRECATED(leagueName, year, excludeList)
 {
     let leaguepediaLeagueName = leagueName.toUpperCase();
     let query = "";
-    let idNotNullFlag = leagueName != "LPL"; // Forma temporária de melhorar a Query de jogos que não são da LPL
+    let idNotNullFlag = leagueName != "LPL" && leagueName != "LDL"; // Forma temporária de melhorar a Query de jogos que não são da LPL/LDL
 
     switch(leagueName)
     {
@@ -56,6 +56,95 @@ async function GetBayesGames(leagueName, year, excludeList)
     }
 
     return await fetch(bayesSearchAPI.format(where), {}).then(resp => resp.json());
+}
+
+async function GetBayesGames(leagueNames, year, excludeList)
+{
+    let where = "(";
+
+    let leagues = leagueNames;
+    if(!Array.isArray(leagues))
+    {
+        leagues = [leagues];
+    }
+
+    for(let leagueName of leagues)
+    {
+        if(where != "(")
+            where += " OR ";
+
+        let leaguepediaLeagueName = leagueName.toUpperCase();
+        let query = "";
+        let idNotNullFlag = leagueName != "LPL" && leagueName != "LDL"; // Forma temporária de melhorar a Query de jogos que não são da LPL/LDL
+    
+        switch(leagueName)
+        {
+            case "WORLDS":
+                query = `${leaguepediaLeagueName} ${year}%`;
+                break;
+            case "MSI":
+            case "Mid-Season Invitational":
+                query = `${year} Mid-Season Invitational%`;
+                break;
+            case "NACL":
+            case "North American Challengers League":
+                query = `North American Challengers League/${year} Season/%`;
+                break;
+            default:
+                query = `${leaguepediaLeagueName}/${year}%`
+                break;
+        }
+    
+        // query = query.format(leaguepediaLeagueName, year);
+    
+        where += `(MSG.OverviewPage LIKE '${query}'`;
+    
+        if(idNotNullFlag)
+        {
+            where += " AND MSG.RiotPlatformGameId != 1";
+        } else {
+            where += " AND MS.QQ != 1";
+        }
+
+        where += ")";
+    }
+
+    where += ")";
+
+    if(excludeList != undefined)
+    {
+        if(Array.isArray(excludeList))
+        {
+            for(let exclude of excludeList)
+            {
+                where += ` AND MSG.OverviewPage NOT LIKE '%${exclude}%'`;
+            }
+        } else if(excludeList != "") {
+            where += ` AND MSG.OverviewPage NOT LIKE '%${excludeList}%'`;
+        }
+    }
+
+    let response = await fetch(bayesSearchAPI.format(where), {}).then(resp => resp.json());
+
+    if(response.cargoquery.length == response.limits.cargoquery)
+    {
+        let offset = response.cargoquery.length;
+
+        while(true)
+        {
+            let loopResponse = await fetch(bayesSearchAPI.format(where) + `&offset=${offset}`, {}).then(resp => resp.json());
+
+            response.limits.cargoquery += loopResponse.limits.cargoquery;
+            response.cargoquery = response.cargoquery.concat(loopResponse.cargoquery);
+
+            if(loopResponse.cargoquery.length < loopResponse.limits.cargoquery)
+                break;
+
+            offset += loopResponse.cargoquery.length;
+        }
+    }
+
+    return response;
 }
 
 async function GetQqGame(matchId, gameNum)
@@ -110,7 +199,7 @@ async function GetQqGame(matchId, gameNum)
             // TBD: runas
             let playerData = { assists: player.battleDetail.assist, champLevel: player.otherDetail.level, championId: player.heroId, championName: "", damageDealtToBuildings: 0, damageDealtToObjectives: 0, damageDealtToTurrets: 0, damageSelfMitigated: 0, deaths: player.battleDetail.death, goldEarned: player.otherDetail.golds, goldSpent: player.otherDetail.spentGold, iteam0: 0, item1: 0, item2: 0, item3: 0, item4: 0, item5: 0, item6: player.trinketItem.itemId, kills: player.battleDetail.kills, largestCriticalStrike: player.damageDetail.highestCritDamage, largestKillingSpree: player.battleDetail.highestKillStreak, largestMultiKill: player.battleDetail.highestMultiKill, lane: player.playerLocation, magicDamageDealt: player.damageDetail.totalMagicalDamage, magicDamageDealtToChampions: player.damageDetail.heroMagicalDamage, magicDamageTaken: player.DamageTakenDetail.magicalDamageTaken, neutralMinionsKilled: player.otherDetail.totalNeutralMinKilled, participantId: matchDetails.participants.length + 1, perks: {}, physicalDamageDealt: player.damageDetail.totalPhysicalDamage, physicalDamageDealtToChampions: player.damageDetail.heroPhysicalDamage, physicalDamageTaken: player.DamageTakenDetail.physicalDamageTaken, riotIdGameName: "", role: player.playerLocation, spell1Id: player.spell1id, spell2Id: player.spell2id, teamId: isBlueTeam ? 100 : 200, totalAllyJungleMinionsKilled: player.otherDetail.totalMinKilledYourJungle, totalDamageDealt: player.damageDetail.totalDamage, totalDamageDealtToChampions: player.damageDetail.heroDamage, totalDamageShieldedOnTeammates: 0, totalDamageTaken: player.DamageTakenDetail.damageTaken, totalEnemyJungleMinionsKilled: player.otherDetail.totalMinKilledEnemyJungle, totalHeal: 0, totalHealsOnTeammates: 0, totalMinionsKilled: player.minionKilled, totalTimeCCDealt: 0, totalTimeSpentDead: player.otherDetail.deathTime, totalUnitsHealed: 0, trueDamageDealt: player.damageDetail.totalTrueDamage, trueDamageDealtToChampions: player.damageDetail.heroTrueDamage, trueDamageTaken: player.DamageTakenDetail.trueDamageTaken, turretKills: player.otherDetail.turretAmount, turretTakedowns: 0, turretsLost: 0, visionScore: player.visionDetail.visionScore, visionWardsBoughtInGame: player.visionDetail.controlWardPurchased, wardsKilled: player.visionDetail.wardKilled, wardsPlaced: player.visionDetail.wardPlaced, win: teamsWin[teamIndex] };
 
-            playerData.championName = await getChampionName(player.heroId);
+            playerData.championName = await GetChampionName(player.heroId);
 
             for(let itemIndex in player.items)
             {
@@ -231,19 +320,33 @@ async function GetCacheOrFetchGame(RiotGameID)
     }
 }
 
-let championsJson = null;
+let championsJson = {};
 
-async function getChampionName(id)
+async function GetChampionName(id, lang = "en_US")
 {
-    if(championsJson == null)
+    if(championsJson[lang] == null)
     {
-        championsJson = await fetch("http://ddragon.leagueoflegends.com/cdn/14.4.1/data/en_US/champion.json", {}).then(resp => resp.json());
+        championsJson[lang] = await fetch(`http://ddragon.leagueoflegends.com/cdn/14.4.1/data/${lang}/champion.json`, {}).then(resp => resp.json());
     }
 
-    for(let champion in championsJson.data)
+    for(let champion in championsJson[lang].data)
     {
-        if(parseInt(championsJson.data[champion].key) == id)
-            return championsJson.data[champion].name;
+        if(parseInt(championsJson[lang].data[champion].key) == id)
+            return championsJson[lang].data[champion].id;
+    }
+}
+
+async function GetChampionNameById(id, lang = "en_US")
+{
+    if(championsJson[lang] == null)
+    {
+        championsJson[lang] = await fetch(`http://ddragon.leagueoflegends.com/cdn/14.4.1/data/${lang}/champion.json`, {}).then(resp => resp.json());
+    }
+
+    for(let champion in championsJson[lang].data)
+    {
+        if(championsJson[lang].data[champion].id == id)
+            return championsJson[lang].data[champion].name;
     }
 }
 
@@ -270,4 +373,4 @@ function nFormatter(num, digits) {
     return (num / si[i].value).toFixed(digits).replace(rx, "$1") + si[i].symbol;
 }
 
-module.exports = { GetBayesGames, GetGameData, GetBayersGame, GetQqGame, fmtMSS, nFormatter }
+module.exports = { GetBayesGames, GetGameData, GetBayersGame, GetQqGame, fmtMSS, nFormatter, GetChampionName, GetChampionNameById }
